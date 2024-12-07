@@ -32,6 +32,7 @@ bool finished = false;
 
 static const int CTRL_E = 5;
 static const int CTRL_G = 7;
+static const int CTRL_X = 24;
 
 void mouseAction(int mx, int my)
 {
@@ -82,7 +83,7 @@ void keyAction( int ch )
                 x--;
             } 
             break;
-            case KEY_LEFT:
+        case KEY_LEFT:
             if (x>0)
                 x--;
             break;
@@ -101,6 +102,10 @@ void keyAction( int ch )
             y = 1;
             if (x > replacePattern.length())
                 x = replacePattern.length();
+            break;
+        case CTRL_X:
+            endwin();
+            exit(EXIT_SUCCESS);
             break;
         case CTRL_E:
             extended = !extended;
@@ -202,6 +207,13 @@ bool checkSolution()
 void drawScreen()
 {
     clear();
+    /*Draw the status / messsage bar at the bottom */
+    move(getmaxy(stdscr) - 1,0);
+    attron(COLOR_PAIR(4));
+    addstr("Press [Control + X] to exit");
+    attroff(COLOR_PAIR(4));
+
+    /*Draw the base interface*/
     move(0,0);
     addstr("Regex Pattern: ");
     move(0,16);
@@ -439,6 +451,7 @@ void initCurses()
     init_pair(1, COLOR_BLACK, COLOR_GREEN);
     init_pair(2, COLOR_BLACK, COLOR_BLUE);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
+    init_pair(4, COLOR_BLACK, COLOR_WHITE);
 }
 
 
