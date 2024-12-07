@@ -1,9 +1,5 @@
 CXXFLAGS = -std=c++11
-LDFLAGS  = -lcurses -lboost_regex
-LDCONFIG = $(shell which ldconfig 2>/dev/null || echo /sbin/ldconfig)
-ifneq (,$(findstring libtinfo,$(shell $(LDCONFIG) -p)))
-LDFLAGS += -ltinfo
-endif
+LDLIBS  = $(shell pkg-config --libs ncurses) -lboost_regex
 
 BINS = regex
 
