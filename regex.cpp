@@ -207,13 +207,13 @@ bool checkSolution()
 void drawScreen()
 {
     clear();
-    /*Draw the status / messsage bar at the bottom */
+    //Draw the status / messsage bar at the bottom
     move(getmaxy(stdscr) - 1,0);
     attron(COLOR_PAIR(4));
     addstr("Press [Control + X] to exit");
     attroff(COLOR_PAIR(4));
 
-    /*Draw the base interface*/
+    //Draw the base interface
     move(0,0);
     addstr("Regex Pattern: ");
     move(0,16);
@@ -248,13 +248,23 @@ void drawScreen()
     addstr("TASK:  ");
     addstr(prompt.c_str());
 
+    //Draw line numbers
+    move(7, 0);
+    addstr("#");
+    attron(COLOR_PAIR(5));
+    for (int i = 0; i < lines.size(); i++) {
+        mvaddstr(8+i, 0, to_string(i+1).c_str());
+    }
+    attroff(COLOR_PAIR(5));
+
+    //Draw the rest
     for (int i = 0; i < lines.size(); i++)
     {
         int color = 1;
         
-        move(7,0);
+        move(7, 3);
         addstr("Text:");
-        move(8+i,0);    
+        move(8+i, 3);
         for (int j = 0; j < coloredLines[i].size(); j++)
         {
             if (j%2!=0)
@@ -268,15 +278,15 @@ void drawScreen()
         }
         if (replaceMode)
         {
-            move(7,50);
+            move(7, 53);
             addstr("Replaced String:");
-            move(8+i, 50); 
+            move(8+i, 53); 
             addstr(replaced[i].c_str());
         }
         else
         {
-            int loc = 50;
-            move(6,loc);
+            int loc = 53;
+            move(6, loc);
             addstr("Captured String:");
             for (int j = 0; j < caplen.size() && j < 9; j++)
             {
@@ -286,7 +296,7 @@ void drawScreen()
                 loc += caplen[j];
             }
             
-            loc = 50;
+            loc = 53;
             for (int j = 0; j < captures[i].size(); j++)
             {
                 move(8+i, loc); 
@@ -452,6 +462,7 @@ void initCurses()
     init_pair(2, COLOR_BLACK, COLOR_BLUE);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
     init_pair(4, COLOR_BLACK, COLOR_WHITE);
+    init_pair(5, COLOR_YELLOW, COLOR_BLACK);
 }
 
 
