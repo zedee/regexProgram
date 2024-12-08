@@ -24,15 +24,29 @@ vector<int> caplen;
 vector<vector<string>> captureSolutions;
 vector<string> replaceSolutions;
 
+enum app_state_t {APP_MENU, APP_PLAY, APP_LOAD_LEVEL};
+app_state_t appState = APP_MENU;
+
+enum menu_choices_t {MC_START, MC_CONTINUE, MC_LOAD, MC_EXIT};
+int menuChoice = 1;
+
 bool extended = false;
 bool global = false;
 bool replaceMode = false;
 bool match = false;
 bool finished = false;
+bool started = false;
 
+//Key code bindings
 static const int CTRL_E = 5;
 static const int CTRL_G = 7;
 static const int CTRL_X = 24;
+static const int ENTER_KEY = 10;
+
+//Menu things
+static const int MENU_WIDTH = 54;
+static const int MENU_HEIGHT = 8;
+static const int MAX_MENU_OPTION = 3;
 
 void mouseAction(int mx, int my)
 {
@@ -104,8 +118,9 @@ void keyAction( int ch )
                 x = replacePattern.length();
             break;
         case CTRL_X:
-            endwin();
-            exit(EXIT_SUCCESS);
+            clear();
+            refresh();
+            appState = APP_MENU;
             break;
         case CTRL_E:
             extended = !extended;
@@ -204,13 +219,91 @@ bool checkSolution()
         
 }
 
+void drawMenu(WINDOW *menuWindow, int selectedItem) {    
+    box(menuWindow, 0, 0);
+    wattron(menuWindow, COLOR_PAIR(6)|A_BOLD);
+    mvwaddstr(menuWindow, 0, 2, "~regexProgram~");
+    wattroff(menuWindow, COLOR_PAIR(6)|A_BOLD);
+
+    mvwprintw(menuWindow, 2, 2, "START from the beginning.");
+    mvwprintw(menuWindow, 3, 2, "CONTINUE from where you left. (Not implemented)");
+    mvwprintw(menuWindow, 4, 2, "LOAD a level to start from. (Not implemented)");
+    mvwprintw(menuWindow, 5, 2, "EXIT");
+
+    switch (selectedItem) {
+        case MC_START:
+            wattron(menuWindow, A_BOLD | A_REVERSE);
+            mvwprintw(menuWindow, 2, 2, "START from the beginning.");
+            wattroff(menuWindow, A_BOLD | A_REVERSE);
+            break;
+        case MC_CONTINUE:
+            wattron(menuWindow, A_BOLD | A_REVERSE);
+            mvwprintw(menuWindow, 3, 2, "CONTINUE from where you left. (Not implemented)");
+            wattroff(menuWindow, A_BOLD | A_REVERSE);
+            break;
+        case MC_LOAD:
+            wattron(menuWindow, A_BOLD | A_REVERSE);
+            mvwprintw(menuWindow, 4, 2, "LOAD a level to start from. (Not implemented)");
+            wattroff(menuWindow, A_BOLD | A_REVERSE);
+            break;
+        case MC_EXIT:
+            wattron(menuWindow, A_BOLD | A_REVERSE);
+            mvwprintw(menuWindow, 5, 2, "EXIT");
+            wattroff(menuWindow, A_BOLD | A_REVERSE);
+            break;
+        default:
+            break;
+    }
+
+    wrefresh(menuWindow);
+}
+
+void menuKeyAction(WINDOW *menuWindow, int *menuOption) {
+    int ch = wgetch(menuWindow);
+
+    switch (ch) {
+        case KEY_UP:
+            (*menuOption)--;
+            if (*menuOption < 0) {
+                *menuOption = MAX_MENU_OPTION;
+            }
+            break;
+        case KEY_DOWN:
+            (*menuOption)++;
+            if (*menuOption > MAX_MENU_OPTION) {
+                *menuOption = 0;            
+            }
+            break;
+        case ENTER_KEY:
+            switch (*menuOption) {
+                case MC_START:
+                     MC_CONTINUE:
+                     MC_LOAD:
+                        appState = APP_PLAY;
+                        break;
+                case MC_EXIT:
+                    endwin();
+                    printf("Thank you, Bye!\n");
+                    exit(0);
+                    break;
+                default:
+                    appState = APP_PLAY;
+                    break;
+            }
+            break;
+        default: 
+            appState = APP_PLAY;
+            break;
+    }
+}
+
 void drawScreen()
 {
     clear();
     //Draw the status / messsage bar at the bottom
     move(getmaxy(stdscr) - 1,0);
     attron(COLOR_PAIR(4));
-    addstr("Press [Control + X] to exit");
+    addstr("Press [Control + X] to go back to main menu.");
     attroff(COLOR_PAIR(4));
 
     //Draw the base interface
@@ -249,11 +342,10 @@ void drawScreen()
     addstr(prompt.c_str());
 
     //Draw line numbers
-    move(7, 0);
-    addstr("#");
+    mvaddstr(7, 0, "#");
     attron(COLOR_PAIR(5));
     for (int i = 0; i < lines.size(); i++) {
-        mvaddstr(8+i, 0, to_string(i+1).c_str());
+        mvprintw(8+i, 0, "%d", i+1);
     }
     attroff(COLOR_PAIR(5));
 
@@ -452,43 +544,68 @@ void getFile(string s)
 void initCurses()
 {
     initscr();
+    clear();
     start_color();
     use_default_colors();
     cbreak();
     noecho();
-    mousemask(BUTTON1_PRESSED, NULL);
-    keypad(stdscr, TRUE);
+    mousemask(BUTTON1_PRESSED, NULL);    
     init_pair(1, COLOR_BLACK, COLOR_GREEN);
     init_pair(2, COLOR_BLACK, COLOR_BLUE);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
     init_pair(4, COLOR_BLACK, COLOR_WHITE);
     init_pair(5, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(6, COLOR_GREEN, -1);
 }
 
 
 int main ()
 {
+    WINDOW *menuWindow;
+    WINDOW *appWindow;
+
+    //Initial highlighted menu option
+    int menuOption = 0;
+
     int level = 1;
     int ch = 0;
     getFile("problems/problem" + to_string(level));
     initCurses();
+
+    //Create menu window
+    menuWindow = newwin(
+        MENU_HEIGHT, 
+        MENU_WIDTH, 
+        (getmaxy(stdscr) - MENU_HEIGHT) / 2, 
+        (getmaxx(stdscr) - MENU_WIDTH) / 2);
+    //Enable keypad (arrows and so) for both windows
+    keypad(stdscr, TRUE);
+    keypad(menuWindow, TRUE);    
+    refresh();
+    
     while(true)
     {
-        if (checkSolution())
-        {
-            regexPattern = "";
-            replacePattern = "";
-            x = 0;
-            y = 0;
-            if (level == 10)
-                break;
-            level++;
-            getFile("problems/problem" + to_string(level));
+        if (appState == APP_MENU) {
+            drawMenu(menuWindow, menuOption);            
+            menuKeyAction(menuWindow, &menuOption);
+        } else {
+            if (checkSolution())
+            {
+                regexPattern = "";
+                replacePattern = "";
+                x = 0;
+                y = 0;
+                if (level == 10)
+                    break;
+                level++;
+                getFile("problems/problem" + to_string(level));
+            }
+            
+            performRegex();
+            drawScreen();
+            ch = getch();
+            keyAction(ch);
         }
-        keyAction(ch);
-        performRegex();
-        drawScreen();
-        ch = getch();
     }
     endwin();
     printf("end\n");
