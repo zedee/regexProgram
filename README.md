@@ -17,13 +17,14 @@ $ ./regex   # runs the program
 
 Interface
 ---
-| Input | Description |
-|:-----|:-----|
+| Input            | Description |
+|:-----------------|:------------|
 | Arrow keys/mouse | Move between `Regex pattern:` and `Replace with:`|
-| Mouse | Toggles `Extended regex` and `Global Tag` checkboxes. |
-| `Ctrl+E` | Toggles `Extended regex` checkbox. |
-| `Ctrl+G` | Toggles `Global Tag` checkbox. |
-| `Ctrl+C` | Exits the program. |
+| Mouse            | Toggles `Extended regex` and `Global Tag` checkboxes. |
+| `Ctrl+E`         | Toggles `Extended regex` checkbox. |
+| `Ctrl+G`         | Toggles `Global Tag` checkbox. |
+| `Ctrl+C`         | Exits the program. (Forcefully) |
+| `Ctrl+X`         | Drives to the main menu |
 
 | Onscreen | Description |
 |:------|:-----|
@@ -36,13 +37,13 @@ Create a blank text file with a number, preferrably starting with one greater th
 
 Use the following format:
 
-| Flag | Description |
+| Flag          | Description |
 |:--------------|:---------------|
-|`--prompt` | This is where your prompt goes.|
-|`--line`| Each line of these are the possible strings/complete lines/sentences/etc. to capture.|
-|`--match`| Indicates a string matching problem (as opposed to a replace or capture problem). Each line indicates whether or not a regex should match that corresponding string/sentence. A blank line indicates not matching, anything else indicates matching.|
-|`--capture`| Indicates a string capture problem (as opposed to a replace or matching problem). Each line corresponds to the capture groups that are captured by the regex. These lines indicate what should be captured by `\0` or the entire regex. Following `--n` lines are what should be captured by the corresponding capture groups (backreferencing) i.e. `\1` `\2`|
-|`--replace`| Indicates a replace problem (as opposed to a find problem). Each line indicates what the capture and replace regex should return.|
+|`--prompt`     | This is where your prompt goes.|
+|`--line`       | Each line of these are the possible strings/complete lines/sentences/etc. to capture.|
+|`--match`      | Indicates a string matching problem (as opposed to a replace or capture problem). Each line indicates whether or not a regex should match that corresponding string/sentence. A blank line indicates not matching, anything else indicates matching.|
+|`--capture`    | Indicates a string capture problem (as opposed to a replace or matching problem). Each line corresponds to the capture groups that are captured by the regex. These lines indicate what should be captured by `\0` or the entire regex. Following `--n` lines are what should be captured by the corresponding capture groups (backreferencing) i.e. `\1` `\2`|
+|`--replace`    | Indicates a replace problem (as opposed to a find problem). Each line indicates what the capture and replace regex should return.|
 
 Refer to the provided prompts if you need assistance.
 
