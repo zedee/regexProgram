@@ -1,5 +1,9 @@
 #include <stdio.h>
+#ifdef __sun
+#include <ncurses/curses.h>
+#else
 #include <curses.h>
+#endif
 #include <unistd.h>
 #include <string>
 #include <fstream>
