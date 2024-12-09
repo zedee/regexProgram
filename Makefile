@@ -1,13 +1,14 @@
+PROGRAM = regex
 CXXFLAGS = -std=c++11
-LDLIBS  = $(shell pkg-config --libs ncurses) -lboost_regex
-
-BINS = regex
+LDLIBS = `pkg-config --libs-only-l ncurses` -lboost_regex
 
 .PHONY: all
-all: $(BINS)
-
-regex: regex.cpp
-
 .PHONY: clean
+
+all: $(PROGRAM)
+
 clean:
-	rm -f $(BINS)
+	rm -f $(PROGRAM)
+
+$(PROGRAM): $(PROGRAM).cpp
+	g++ $(PROGRAM).cpp $(CXXFLAGS) $(LDLIBS) -o $(PROGRAM)
