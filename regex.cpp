@@ -420,7 +420,7 @@ void performRegex()
         }
         else
         {
-            if (regexPattern.back() != '\\')
+            if (!regexPattern.empty() && regexPattern.back() != '\\')
                 r.assign(regexPattern.c_str(), regex::basic);
             else
                 valid = false;
