@@ -30,9 +30,9 @@ app_state_t appState = APP_MENU;
 enum menu_choices_t {MC_START, MC_CONTINUE, MC_LOAD, MC_EXIT};
 int menuChoice = 1;
 
-bool extended = false;
-bool global = false;
-bool replaceMode = false;
+bool isExtended = false;
+bool isGlobal = false;
+bool isReplaceMode = false;
 bool match = false;
 bool finished = false;
 bool started = false;
@@ -53,11 +53,11 @@ void mouseAction(int mx, int my)
     if (my == 2)
     {
         if (mx < 27)
-            extended = !extended;
+            isExtended = !isExtended;
         else if (mx > 31 && mx < 45)
-            global = !global;
+            isGlobal = !isGlobal;
         //else if (mx > 38 && mx < 57)
-        //    replaceMode = !replaceMode;
+        //    isReplaceMode = !isReplaceMode;
     }
     else if (my == 0)
     {
@@ -123,10 +123,10 @@ void keyAction( int ch )
             appState = APP_MENU;
             break;
         case CTRL_E:
-            extended = !extended;
+            isExtended = !isExtended;
             break;
         case CTRL_G:
-            global = !global;
+            isGlobal = !isGlobal;
             break;
         default:
             if (ch >= 32 && ch < 127)
@@ -142,7 +142,7 @@ void keyAction( int ch )
 
 bool checkSolution()
 {
-    if (replaceMode)
+    if (isReplaceMode)
     {
         if (replaced.size() != replaceSolutions.size())
             return false;
@@ -317,14 +317,14 @@ void drawScreen()
     addstr(replacePattern.c_str());
     move(2,0);
     addstr("Extended Regex (Ctrl-E) [ ]    Global Tag (Ctrl-G) [ ]      ");
-    if (replaceMode)
+    if (isReplaceMode)
         addstr("--Replace Mode--");
     else
         addstr("--Search Mode--");
 
-    if (extended)
+    if (isExtended)
         mvaddch(2,25,'X');
-    if (global)
+    if (isGlobal)
         mvaddch(2,52,'X');
 
     move(5,0);
@@ -368,7 +368,7 @@ void drawScreen()
             if (j%2!=0)
                 attroff(COLOR_PAIR(color+1));
         }
-        if (replaceMode)
+        if (isReplaceMode)
         {
             move(7, 53);
             addstr("Replaced String:");
@@ -410,7 +410,7 @@ void performRegex()
     regex r;
     try
     {  
-        if (extended)
+        if (isExtended)
         {
             r.assign(regexPattern.c_str(), regex::extended);
         }
@@ -449,7 +449,7 @@ void performRegex()
             m = *j;
             coloredLines[i].push_back(m.prefix().str());
             coloredLines[i].push_back(m.str());
-            if (!global)
+            if (!isGlobal)
                 break;
         }
         if (words_begin == words_end)
@@ -457,7 +457,7 @@ void performRegex()
         else
             coloredLines[i].push_back(m.suffix().str());
 
-        if (!global && regex_search (s,m,r)) {
+        if (!isGlobal && regex_search (s,m,r)) {
             int numcap = 0;
             for (auto x:m) 
             {
@@ -470,7 +470,7 @@ void performRegex()
             }
         }
 
-        if (global)
+        if (isGlobal)
             replaced.push_back(regex_replace(s,r,replacePattern));
         else
             replaced.push_back(regex_replace(s,r,replacePattern,regex_constants::format_first_only));
@@ -516,7 +516,7 @@ void getFile(string s)
     if (line == "--capture" || line == "--match")
     {
         match = line == "--match";
-        replaceMode = false;
+        isReplaceMode = false;
         string s;
         int i = 0;
         while (getline(infile,s))
@@ -532,7 +532,7 @@ void getFile(string s)
     }
     else if (line == "--replace")
     {
-        replaceMode = true;
+        isReplaceMode = true;
         for (string s; getline(infile,s);)
         {
             replaceSolutions.push_back(s);
