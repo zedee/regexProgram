@@ -90,6 +90,8 @@ void keyAction( int ch )
             break;
         case KEY_BACKSPACE:
         case 127:
+        //Capture backspace on xterm too (^H)
+        case 8:
             if (y == 0 && x > 0 && regexPattern.length() >= x)
             {
                 regexPattern.erase(regexPattern.begin()+x-1);
