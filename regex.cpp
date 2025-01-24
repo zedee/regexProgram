@@ -8,10 +8,13 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <iostream>
 #include <boost/regex.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace boost;
+namespace fs = boost::filesystem;
 
 int x = 0, y = 0;
 string regexPattern;
@@ -330,6 +333,18 @@ void drawLevelSelectionList(WINDOW *window, int* level) {
     wclear(window);
     box(window, 0, 0);
     mvwprintw(window, 1, 2, "Please select a level from the list: ");
+
+    //TODO: Maybe we should try first the checks of the existance of the directory, know beforehand the items
+    // and then print them accordingly.
+    fs::path levelsPath("./problems"); //TODO: allow changing directory or assign it by arguments
+    if (!fs::exists(levelsPath)) appState = APP_MENU; //Return to main menu (temporary fix)
+    fs::directory_iterator end_itr; // default construction yields past-the-end
+    int cursorHeightCount = 3;
+    for (fs::directory_iterator itr(levelsPath); itr != end_itr; ++itr) {
+        //cout << itr->path().leaf() << endl;
+        mvwprintw(window, cursorHeightCount, 2, itr->path().filename().string().data());
+        cursorHeightCount++;
+    }
 }
 
 void drawScreen(WINDOW *window)
