@@ -225,6 +225,27 @@ bool checkSolution()
         
 }
 
+//Returns a pointer to a new window centered on screen. If w and h = 0, window will be of the size of the screen
+WINDOW* createNewWindow(int height, int width) {
+    if (width > 0 && height > 0) {
+        return newwin(
+            height, 
+            width, 
+            (getmaxy(stdscr) - height) / 2, 
+            (getmaxx(stdscr) - width) / 2);
+    } else {
+        return newwin(getmaxy(stdscr), getmaxx(stdscr), 0, 0);
+    }
+}
+
+//Draws a status bar, with a text
+void drawStatusBar(WINDOW *window, const char* message = "Status Bar Text") {
+    move(getmaxy(window) - 1,0);
+    attron(COLOR_PAIR(4));
+    addstr(message);
+    attroff(COLOR_PAIR(4));
+}
+
 void drawMenu(WINDOW *menuWindow, int selectedItem) {    
     box(menuWindow, 0, 0);
     wattron(menuWindow, COLOR_PAIR(6)|A_BOLD);
@@ -284,9 +305,11 @@ void menuKeyAction(WINDOW *menuWindow, int *menuOption) {
             switch (*menuOption) {
                 case MC_START:
                      MC_CONTINUE:
-                     MC_LOAD:
                         appState = APP_PLAY;
                         break;
+                case MC_LOAD:
+                    appState = APP_LOAD_LEVEL;
+                    break;
                 case MC_EXIT:
                     endwin();
                     printf("Thank you, Bye!\n");
@@ -303,14 +326,17 @@ void menuKeyAction(WINDOW *menuWindow, int *menuOption) {
     }
 }
 
-void drawScreen()
+void drawLevelSelectionList(WINDOW *window, int* level) {
+    wclear(window);
+    box(window, 0, 0);
+    mvwprintw(window, 1, 2, "Please select a level from the list: ");
+}
+
+void drawScreen(WINDOW *window)
 {
     clear();
     //Draw the status / messsage bar at the bottom
-    move(getmaxy(stdscr) - 1,0);
-    attron(COLOR_PAIR(4));
-    addstr("Press [Control + X] to go back to main menu.");
-    attroff(COLOR_PAIR(4));
+    drawStatusBar(window, "Press [Control + X] to go back to main menu.");
 
     //Draw the base interface
     move(0,0);
@@ -546,7 +572,6 @@ void getFile(string s)
     }
 }
 
-
 void initCurses()
 {
     initscr();
@@ -564,11 +589,11 @@ void initCurses()
     init_pair(6, COLOR_GREEN, -1);
 }
 
-
 int main ()
-{
-    WINDOW *menuWindow;
+{    
     WINDOW *appWindow;
+    WINDOW *menuWindow;
+    WINDOW *levelLoadWindow;
 
     //Initial highlighted menu option
     int menuOption = 0;
@@ -578,14 +603,14 @@ int main ()
     getFile("problems/problem" + to_string(level));
     initCurses();
 
+    //Create app window
+    appWindow = createNewWindow(0, 0);
     //Create menu window
-    menuWindow = newwin(
-        MENU_HEIGHT, 
-        MENU_WIDTH, 
-        (getmaxy(stdscr) - MENU_HEIGHT) / 2, 
-        (getmaxx(stdscr) - MENU_WIDTH) / 2);
+    menuWindow = createNewWindow(MENU_HEIGHT, MENU_WIDTH);
+    //Create level load window
+    levelLoadWindow = createNewWindow(18, 56);
     //Enable keypad (arrows and so) for both windows
-    keypad(stdscr, TRUE);
+    keypad(appWindow, TRUE);
     keypad(menuWindow, TRUE);    
     refresh();
     
@@ -594,6 +619,13 @@ int main ()
         if (appState == APP_MENU) {
             drawMenu(menuWindow, menuOption);            
             menuKeyAction(menuWindow, &menuOption);
+        } else if (appState == APP_LOAD_LEVEL) {
+            //Clear the menu, draw the file list
+            drawStatusBar(appWindow, "Press [Control + X] to go back to main menu.");
+            wrefresh(appWindow);
+            drawLevelSelectionList(levelLoadWindow, &level);
+            wrefresh(levelLoadWindow);
+            ch = getch();
         } else {
             if (checkSolution())
             {
@@ -608,7 +640,7 @@ int main ()
             }
             
             performRegex();
-            drawScreen();
+            drawScreen(appWindow);
             ch = getch();
             keyAction(ch);
         }
